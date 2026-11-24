@@ -801,7 +801,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
     verifyAll();
 
     if (updates.containsKey(UserResourceProvider.USER_PASSWORD_PROPERTY_ID)) {
-      // Verify that the correct request was issued to update update the user's password...
+      // Verify that the correct request was issued to update the user's password...
       Request capturedRequest = requestCapture.getValue();
       Set<Map<String, Object>> capturedProperties = capturedRequest.getProperties();
       Map<String, Object> properties = capturedProperties.iterator().next();

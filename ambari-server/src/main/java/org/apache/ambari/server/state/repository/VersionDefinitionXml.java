@@ -439,7 +439,7 @@ public class VersionDefinitionXml {
 
   /**
    * Gets all dependencies required to perform an upgrade, considering that the
-   * original set's depenencies may have dependencies of their own.
+   * original set's dependencies may have dependencies of their own.
    *
    * @param missingDependencies
    *          the set of missing dependencies so far.

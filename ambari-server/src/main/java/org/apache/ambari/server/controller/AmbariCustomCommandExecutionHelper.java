@@ -281,7 +281,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @param actionExecutionContext Execution Context
    * @param resourceFilter Resource Filter
    * @param stage Command stage
-   * @param additionalCommandParams Additional command params to add the the stage
+   * @param additionalCommandParams Additional command params to add to the stage
    * @param commandDetail String for the command detail
    * @throws AmbariException
    */
@@ -1291,7 +1291,7 @@ public class AmbariCustomCommandExecutionHelper {
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
-      // Important, because this runs during Stack Uprade, it needs to use the effective Stack Id.
+      // Important, because this runs during Stack Upgrade, it needs to use the effective Stack Id.
       hostParamsStage = createDefaultHostParams(cluster, stackId);
 
       String componentName = null;

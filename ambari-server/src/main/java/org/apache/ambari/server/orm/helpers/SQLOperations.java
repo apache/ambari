@@ -37,7 +37,7 @@ public class SQLOperations {
   /**
    * Split the collection to the batches
    *
-   * @param collection collection with values to be splitted
+   * @param collection collection with values to be split
    * @param batchSize  size of the one split
    * @param callback   logic to process one split
    * @return Total number of processed items in collection

@@ -182,7 +182,7 @@ public class HeartBeatHandler {
     response.setResponseId(++currentResponseId);
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
-      // After loosing heartbeat agent should reregister
+      // After losing heartbeat agent should reregister
       LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
       STOMPUpdatePublisher.publish(new AgentActionEvent(AgentActionEvent.AgentAction.RESTART_AGENT,
           hostObject.getHostId()));

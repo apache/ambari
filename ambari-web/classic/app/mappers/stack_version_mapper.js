@@ -65,7 +65,7 @@ App.stackVersionMapper = App.QuickDataMapper.create({
 
         /**
          * this property contains array of hosts on which repoversion was installed
-         * but state of repoveriosn for this hosts can be any postinstalled state
+         * but state of repoversion for this hosts can be any postinstalled state
          * possible states:
          * <code>INSTALLED<code>
          * <code>UPGRADING<code>

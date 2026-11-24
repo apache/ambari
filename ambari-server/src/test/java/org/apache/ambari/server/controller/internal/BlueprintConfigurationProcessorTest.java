@@ -5687,7 +5687,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // Validation will pass as namenode rpc addresses are set to external fqdn addresses
     Set<String> updatedConfigTypes = updater.doUpdateForClusterCreate();
 
-    // verify that doNameNodeHAUpdateOnClusterCreation() made no updates in the abscence of namenodes
+    // verify that doNameNodeHAUpdateOnClusterCreation() made no updates in the absence of namenodes
     assertFalse("dfs.internal.nameservices shouldn't be set", hdfsSiteProperties.containsKey("dfs.internal.nameservices"));
     Map<String, String> clusterEnv = clusterConfig.getProperties().get("cluster-env");
     assertFalse("dfs_ha_initial_namenode_active shouldn't be set", clusterEnv.containsKey("dfs_ha_initial_namenode_active"));
@@ -6074,7 +6074,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertFalse("dfs.namenode.rpc-address should have been filtered out of this HA configuration",
       hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
 
-    // verify that the namservice-specific shared.edits properties are handled correctly
+    // verify that the nameservice-specific shared.edits properties are handled correctly
     // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
     assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
       "qjournal://" + createHostAddress(expectedHostName, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/ns1",
@@ -6290,7 +6290,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("accumulo-site", accumuloSiteProperties);
 
 
-    // configure the active/standy host lists to a custom set of hostnames
+    // configure the active/standby host lists to a custom set of hostnames
     hadoopEnvProperties.put("dfs_ha_initial_namenode_active_set", "test-server-five,test-server-six");
     hadoopEnvProperties.put("dfs_ha_initial_namenode_standby_set", "test-server-seven,test-server-eight");
     hadoopEnvProperties.put("dfs_ha_initial_cluster_id", "my-custom-cluster-name");
@@ -6633,7 +6633,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
 
     // set hadoop-env properties to explicitly configure the initial
-    // active and stanbdy namenodes
+    // active and standby namenodes
     hadoopEnvProperties.put("dfs_ha_initial_namenode_active", expectedHostName);
     hadoopEnvProperties.put("dfs_ha_initial_namenode_standby", expectedHostNameTwo);
 
@@ -6720,7 +6720,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   public void testSetStackToolsAndFeatures_ClusterEnvChanged() throws Exception {
     defaultClusterEnvProperties.putAll(defaultStackProps());
     Map<String, String> blueprintClusterEnv = defaultStackProps();
-    // change something to trigger cluter-env added to the changed configs
+    // change something to trigger cluster-env added to the changed configs
     blueprintClusterEnv.put(CLUSTER_ENV_STACK_ROOT_PROPERTY, "/opt/" + STACK_NAME);
 
     Map<String, Map<String, String>> blueprintProps = Maps.newHashMap(ImmutableMap.of(

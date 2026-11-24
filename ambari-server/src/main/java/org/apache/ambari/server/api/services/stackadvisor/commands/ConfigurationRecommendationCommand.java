@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * {@link org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand} implementation for
  * configuration recommendation.
  * <p>
- * One of the following recommandataion types is indicated:
+ * One of the following recommendation types is indicated:
  * <ul>
  * <li>RECOMMEND_CONFIGURATIONS</li>
  * <li>RECOMMEND_CONFIGURATIONS_FOR_SSO</li>

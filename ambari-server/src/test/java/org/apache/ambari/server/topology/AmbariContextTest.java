@@ -600,7 +600,7 @@ public class AmbariContextTest {
     expect(cluster.getConfigGroups()).andReturn(configGroups).once();
 
     expect(configGroup1.getHosts()).andReturn(Collections.singletonMap(1L, host1)).once();
-    // addHost and persistHostMapping shouldn't be called since host is already registerd with group
+    // addHost and persistHostMapping shouldn't be called since host is already registered with group
 
     // replay all mocks
     replayAll();

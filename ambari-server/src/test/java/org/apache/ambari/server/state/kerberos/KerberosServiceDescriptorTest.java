@@ -386,7 +386,7 @@ public class KerberosServiceDescriptorTest {
   }
 
   /**
-   * Test a JSON object in which only only a Service and configs are defined, but no Components.
+   * Test a JSON object in which only a Service and configs are defined, but no Components.
    */
   @Test
   public void testJSONWithOnlyServiceNameAndConfigurations() throws AmbariException {

@@ -123,7 +123,7 @@ public interface Cluster {
   /**
    * Gets a map of components to hosts they are installed on.
    * <p>
-   * This may may be filtered by host and/or service by optionally providing a set of hostname
+   * This may be filtered by host and/or service by optionally providing a set of hostname
    * and/or service names to use as a filter.  <code>null</code> for either filter indicates no
    * filter (or all), an empty set indicates a complete filter (or none).
    *
@@ -669,7 +669,7 @@ public interface Cluster {
    *          the stack to use when finding the configurations to remove (not
    *          {@code null}).
    * @param serviceName
-   *          the service to rmeove configurations for (not {@code null}).
+   *          the service to remove configurations for (not {@code null}).
    */
   void removeConfigurations(StackId stackId, String serviceName);
 
@@ -719,11 +719,11 @@ public interface Cluster {
 
   /**
    * Gets the most recent value of {@code cluster-env/propertyName} where
-   * {@code propertyName} is the paramter specified to the method. This will use
+   * {@code propertyName} is the parameter specified to the method. This will use
    * the desired configuration for {@code cluster-env}.
    * <p/>
    * The value is cached on this {@link Cluster} instance, so subsequent calls
-   * will not inclur a lookup penalty. This class also responds to
+   * will not incur a lookup penalty. This class also responds to
    * {@link ClusterConfigChangedEvent} in order to clear the cache.
    *
    * @param propertyName

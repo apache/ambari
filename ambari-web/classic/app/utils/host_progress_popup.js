@@ -814,25 +814,25 @@ App.HostPopup = Em.Object.create({
     this.set('isPopup', App.ModalPopup.show({
 
       /**
-       * Controls visiblity of Task Details view.
+       * Controls visibility of Task Details view.
        * @type {boolean}
        */
       isLogWrapHidden: true,
 
       /**
-       * Controls visiblity of Tasks view.
+       * Controls visibility of Tasks view.
        * @type {boolean}
        */
       isTaskListHidden: true,
 
       /**
-       * Controls visiblity of Hosts view.
+       * Controls visibility of Hosts view.
        * @type {boolean}
        */
       isHostListHidden: true,
 
       /**
-       * Controls visiblity of Background Operations view.
+       * Controls visibility of Background Operations view.
        * @type {boolean}
        */
       isServiceListHidden: false,

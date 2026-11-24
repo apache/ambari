@@ -177,7 +177,7 @@ public class AlertMaintenanceModeListener {
 
   /**
    * Updates the maintenance state of the specified alert if different than the
-   * supplied maintenance state. And recalcualte aggregates if the maintenance state
+   * supplied maintenance state. And recalculate aggregates if the maintenance state
    * is changed and there is an aggregate alert for the specified alert if it is
    * in CRITICAL or WARNING state.
    *

@@ -57,7 +57,7 @@ App.WizardStep2View = Em.View.extend({
   didInsertElement: function () {
     App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
     App.tooltip($("[rel=tooltip]"), {'placement': 'top', 'trigger': 'hover'});
-    //todo: move them to conroller
+    //todo: move them to controller
     this.set('controller.hostsError', null);
     this.set('controller.sshKeyError', null);
   },
@@ -71,7 +71,7 @@ App.WizardStep2View = Em.View.extend({
   /**
    * Is File API available
    * @type {bool}
-   * TODO: incupsulate it inside of App.SshKeyFileUploader
+   * TODO: encapsulate it inside of App.SshKeyFileUploader
    */
   isFileApi: function () {
     /* istanbul ignore next */

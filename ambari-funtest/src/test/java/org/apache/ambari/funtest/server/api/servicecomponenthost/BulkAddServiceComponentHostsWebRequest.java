@@ -39,7 +39,7 @@ public class BulkAddServiceComponentHostsWebRequest extends AmbariHttpWebRequest
     private static String pathFormat = "/api/v1/clusters/%s/hosts";
 
     /**
-     * Adds multiple componenents to multiple hosts.
+     * Adds multiple components to multiple hosts.
      *
      * @param params - Ambari server connection information.
      * @param clusterName - Existing cluster.

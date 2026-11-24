@@ -61,7 +61,7 @@ App.BreadcrumbItem = Em.Object.extend({
 
   /**
    * View shown as breadcrumb.
-   * If provied, <code>itemView</code> supersedes <code>label</code> and <code>labelBindingPath</code>.
+   * If provided, <code>itemView</code> supersedes <code>label</code> and <code>labelBindingPath</code>.
    *
    * @type {object}
    */

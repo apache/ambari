@@ -80,7 +80,7 @@ App.HostsBasedInitializerMixin = Em.Mixin.create({
   /**
    * Settings for <code>hosts_with_components</code>-initializer
    * Used for configs with value equal to the hosts list
-   * May set value as array (if <code>asArray</code> is true) or as comma-sepratated string (if <code>asArray</code> is false)
+   * May set value as array (if <code>asArray</code> is true) or as comma-separated string (if <code>asArray</code> is false)
    *
    * @see _initAsHostsWithComponents
    * @param {string|string[]} components
@@ -343,7 +343,7 @@ App.HostsBasedInitializerMixin = Em.Mixin.create({
   },
 
   /**
-   * Returns port-value from <code>dependencies</code> accorfing to <code>initializer.portKey</code> or <code>initializer.port</code> values
+   * Returns port-value from <code>dependencies</code> according to <code>initializer.portKey</code> or <code>initializer.port</code> values
    *
    * @param {object} dependencies
    * @param {object} initializer

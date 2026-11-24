@@ -1066,7 +1066,7 @@ public class ClustersTest {
     String clusterName = UUID.randomUUID().toString();
     String hostName = UUID.randomUUID().toString();
 
-    // required so that the event which does the work is executed synchornously
+    // required so that the event which does the work is executed synchronously
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     Cluster cluster = createCluster(clusterName);

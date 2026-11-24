@@ -80,7 +80,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
   },
 
   /**
-   * Property names to initialize. This attribute should be overrided in class instance.
+   * Property names to initialize. This attribute should be overridden in class instance.
    * `initializers` property will set up according this list from `__defaultUniqueInitializers` and
    * `__defaultInitializers`
    *

@@ -167,7 +167,7 @@ public class KerberosKeytabDAO {
   }
 
   /**
-   * Determines if there are any references to the {@link KerberosKeytabEntity} before attemping
+   * Determines if there are any references to the {@link KerberosKeytabEntity} before attempting
    * to remove it.  If there are any references to it, the entity will be not be removed.
    *
    * @param kerberosKeytabEntity the entity

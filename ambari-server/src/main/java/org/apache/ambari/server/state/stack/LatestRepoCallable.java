@@ -147,7 +147,7 @@ public class LatestRepoCallable implements Callable<Void> {
     if (map.containsKey("latest-vdf")) {
       // !!! this is an os_family -> VDF link.  It's identical to the version entry in the 'manifests'
       // structure.  This is the source of truth for the default, unspecified version when
-      // doing a bluerpint install
+      // doing a blueprint install
       @SuppressWarnings("unchecked")
       Map<String, String> osMap = (Map<String, String>) map.get("latest-vdf");
 

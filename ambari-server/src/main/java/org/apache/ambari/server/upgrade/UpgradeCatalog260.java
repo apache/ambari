@@ -773,7 +773,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          // Updating YARN->NodeManager kerebros descriptor : (1). 'llap_zk_hive' and (2). 'llap_task_hive''s associated configs
+          // Updating YARN->NodeManager kerberos descriptor : (1). 'llap_zk_hive' and (2). 'llap_task_hive''s associated configs
           // hive-interactive-site/hive.llap.zk.sm.keytab.file and hive-interactive-site/hive.llap.task.keytab.file respectively,
           // based on what hive-interactive-site/hive.llap.daemon.keytab.file has.
           Config hsiSiteConfig = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
@@ -808,7 +808,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Retrieves the relevant {@link Cluster} given information from the suppliied {@link ArtifactEntity}.
+   * Retrieves the relevant {@link Cluster} given information from the supplied {@link ArtifactEntity}.
    * <p>
    * The cluster id value is taken from the entity's foreign key value and then used to obtain the cluster object.
    *

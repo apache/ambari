@@ -43,14 +43,14 @@ public class ActionDefinition {
    * Create an instance of ActionDefinition
    *
    * @param actionName      The name of the action
-   * @param actionType      The type fo the action
+   * @param actionType      The type of the action
    * @param inputs          Expected input of the action
    * @param targetService   Target service type (e.g. HDFS)
    * @param targetComponent Target component type (e.g. DATANODE)
    * @param description     Short description of the action
    * @param targetType      Selection criteria for target hosts
    * @param defaultTimeout  The timeout value for this action when executed
-   * @param permissions     A set of permissions to use when verifiying authorization to execute this action
+   * @param permissions     A set of permissions to use when verifying authorization to execute this action
    */
   public ActionDefinition(String actionName, ActionType actionType, String inputs,
                           String targetService, String targetComponent, String description,

@@ -58,7 +58,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   }.property(),
 
   /**
-   * All possible values for scope propery
+   * All possible values for scope property
    * @type {Array}
    */
   allScopes: ['Any', 'Host', 'Service'],

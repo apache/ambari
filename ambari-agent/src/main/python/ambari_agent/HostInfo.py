@@ -250,7 +250,7 @@ class HostInfoLinux(HostInfo):
     "/usr/bigtop",
   ]
 
-  # Exact directories names which are checked for existance
+  # Exact directories names which are checked for existence
   EXACT_DIRECTORIES = ["/kafka-logs"]
 
   DEFAULT_SERVICE_NAME = "ntpd"
@@ -277,7 +277,7 @@ class HostInfoLinux(HostInfo):
         result["status"] = "Available"
         results.append(result)
       except Exception as e:
-        # User doesnot exist, so skip it
+        # User does not exist, so skip it
         pass
 
   def checkFolders(

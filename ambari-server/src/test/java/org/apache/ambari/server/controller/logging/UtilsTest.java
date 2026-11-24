@@ -44,7 +44,7 @@ public class UtilsTest {
 
     AtomicInteger testAtomicInteger = new AtomicInteger(0);
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed once in this test
     loggerMock.error(expectedErrorMessage);
     expectLastCall().times(1);
@@ -70,7 +70,7 @@ public class UtilsTest {
 
     AtomicInteger testAtomicInteger = new AtomicInteger(0);
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed twice in this test
     loggerMock.error(expectedErrorMessage);
     expectLastCall().times(2);
@@ -96,7 +96,7 @@ public class UtilsTest {
 
     AtomicInteger testAtomicInteger = new AtomicInteger(0);
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed once in this test
     loggerMock.error(expectedErrorMessage);
     expectLastCall().times(1);
@@ -122,7 +122,7 @@ public class UtilsTest {
 
     AtomicInteger testAtomicInteger = new AtomicInteger(0);
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed twice in this test
     loggerMock.error(expectedErrorMessage);
     expectLastCall().times(2);
@@ -151,7 +151,7 @@ public class UtilsTest {
 
     Capture<Exception> exceptionCaptureOne = EasyMock.newCapture();
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed once in this test
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureOne));
     expectLastCall().times(1);
@@ -184,7 +184,7 @@ public class UtilsTest {
     Capture<Exception> exceptionCaptureOne = EasyMock.newCapture();
     Capture<Exception> exceptionCaptureTwo = EasyMock.newCapture();
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed twice in this test
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureOne));
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureTwo));
@@ -218,7 +218,7 @@ public class UtilsTest {
 
     Capture<Exception> exceptionCaptureOne = EasyMock.newCapture();
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed once in this test
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureOne));
     expectLastCall().times(1);
@@ -251,7 +251,7 @@ public class UtilsTest {
     Capture<Exception> exceptionCaptureOne = EasyMock.newCapture();
     Capture<Exception> exceptionCaptureTwo = EasyMock.newCapture();
 
-    // expect that the the call to the logger is only
+    // expect that the call to the logger is only
     // executed twice in this test
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureOne));
     loggerMock.error(eq(expectedErrorMessage), capture(exceptionCaptureTwo));

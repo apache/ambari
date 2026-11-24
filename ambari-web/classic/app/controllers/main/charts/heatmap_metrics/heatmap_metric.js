@@ -131,7 +131,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     return defs;
   }.property('minimumValue', 'maximumValue', 'numberOfSlots'),
   /**
-   * genarate slot by given parameters
+   * generate slot by given parameters
    *
    * @param min
    * @param max

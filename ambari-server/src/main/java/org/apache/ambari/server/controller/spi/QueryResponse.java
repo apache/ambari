@@ -48,7 +48,7 @@ public interface QueryResponse {
   boolean isPagedResponse();
 
   /**
-   * Get the the total number of resources for the query result.
+   * Get the total number of resources for the query result.
    * May be different than the size of the resource set for a
    * paged response.
    *

@@ -110,7 +110,7 @@ public class KerberosKeytabPrincipalEntity {
   private Integer isDistributed = 0;
 
   /**
-   * The assocaited keytab entity must be fetched {@link FetchType#EAGER} to
+   * The associated keytab entity must be fetched {@link FetchType#EAGER} to
    * ensure that it can be discovered when only the principal and host are
    * known.
    */

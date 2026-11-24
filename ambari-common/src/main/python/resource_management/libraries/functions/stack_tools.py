@@ -66,7 +66,7 @@ def get_stack_tool(name):
     Logger.warning(f"Cannot find stack tools for the stack named {stack_name}")
     return None, None, None
 
-  # load the stack tooks keyed by the stack name
+  # load the stack tools keyed by the stack name
   stack_tools = stack_tools[stack_name]
 
   if not stack_tools or not name or name.lower() not in stack_tools:

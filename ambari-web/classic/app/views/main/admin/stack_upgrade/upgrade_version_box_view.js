@@ -550,7 +550,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   },
 
   /**
-   * shows popup with listed hosts wich has current state of hostStackVersion
+   * shows popup with listed hosts which has current state of hostStackVersion
    * @param {object} event
    * @returns {App.ModalPopup}
    * @method showHostsListPopup

@@ -344,7 +344,7 @@ public class KerberosDescriptorUpdateHelper {
    * It is expected that <code>newStackIdentities</code> and <code>userIdentities</code> are not null.
    * However, <code>previousStackIdentities</code> may be null in the event the user added a Kerberos
    * identity that was then added in the new Kerberos descriptor.  In this case, the user's values
-   * for the principal name and keytab file are kept while adding any other changes from tne new stack.
+   * for the principal name and keytab file are kept while adding any other changes from the new stack.
    *
    * @param previousStackIdentity a {@link KerberosIdentityDescriptor} from the previous stack version's Kerberos descriptor
    * @param newStackIdentity      a {@link KerberosIdentityDescriptor} from the new stack version's Kerberos descriptor

@@ -1093,7 +1093,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Creates a Collection of PropertyUpdater maps that include the NameNode HA properties, and
    *   adds these to the list of updaters used to process the cluster configuration.  The HA
-   *   properties are based on the names of the HA namservices and name nodes, and so must
+   *   properties are based on the names of the HA nameservices and name nodes, and so must
    *   be registered at runtime, rather than in the static list.  This new Collection includes
    *   the statically-defined updaters, in addition to the HA-related updaters.
    *
@@ -2195,7 +2195,7 @@ public class BlueprintConfigurationProcessor {
     private final String configPropertyType;
 
     /**
-     * Name of property which is used to determine if DB is new or existing (exernal).
+     * Name of property which is used to determine if DB is new or existing (external).
      */
     private final String conditionalPropertyName;
 

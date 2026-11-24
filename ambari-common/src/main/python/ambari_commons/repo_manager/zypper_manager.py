@@ -108,7 +108,7 @@ class ZypperManager(GenericManager):
     available_packages = []
     repo_ids = [repository.repo_id for repository in repos.items]
 
-    # zypper cant tell from which repository were installed package, as repo r matching by pkg_name
+    # zypper can't tell from which repository were installed package, as repo r matching by pkg_name
     # as result repository would be matched if it contains package with same meta info
 
     if repos.feat.scoped:

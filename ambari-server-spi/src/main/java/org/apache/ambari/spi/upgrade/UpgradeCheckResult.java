@@ -43,7 +43,7 @@ public class UpgradeCheckResult {
   }
 
   /**
-   * Gets the name of the unique {@link UpgradeCheckDescription} assocaited with the
+   * Gets the name of the unique {@link UpgradeCheckDescription} associated with the
    * upgrade check.
    *
    * @return a unique identifier for the upgrade result which is based on the
@@ -56,7 +56,7 @@ public class UpgradeCheckResult {
   /**
    * The associated {@link UpgradeCheckDescription}'s text.
    *
-   * @return the desccription for the upgrade check which provided this result.
+   * @return the description for the upgrade check which provided this result.
    */
   public String getDescription() {
     return m_upgradeCheck.getCheckDescription().getText();

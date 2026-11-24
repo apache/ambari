@@ -575,7 +575,7 @@ public class AlertDefinitionResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    // updateing a single definition should invalidate hosts of the definition
+    // updating a single definition should invalidate hosts of the definition
     expect(
         definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
       new HashSet<>()).atLeastOnce();
@@ -710,7 +710,7 @@ public class AlertDefinitionResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    // updateing a single definition should invalidate hosts of the definition
+    // updating a single definition should invalidate hosts of the definition
     expect(definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
       new HashSet<>()).atLeastOnce();
 

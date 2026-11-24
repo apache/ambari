@@ -176,7 +176,7 @@ public class StaleAlertRunnable extends AlertRunnable {
       // alert because it has a longer interval than this stale alert check:
       //
       // Stale alert check - every 5 minutes
-      // Foo alert cehck - every 10 minutes
+      // Foo alert check - every 10 minutes
       // Ambari down for 35 minutes for upgrade
       if (uptime <= waitFactor * intervalInMillis) {
         continue;

@@ -96,7 +96,7 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend(Ap
 
 
   /**
-   * Send request to unkerberisze cluster
+   * Send request to unkerberize cluster
    * @returns {$.ajax}
    */
   unkerberizeCluster: function () {

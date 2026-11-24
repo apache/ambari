@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Topology validator wrapper implementation. Executes a set of validations by calling a preconfgured set of validator implementations.
+ * Topology validator wrapper implementation. Executes a set of validations by calling a preconfigured set of validator implementations.
  */
 public class ChainedTopologyValidator implements TopologyValidator {
 

@@ -37,7 +37,7 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link HostMaintenanceModeCheck} is used to provide a warning if any
- * hosts are in maintenance mode. Hosts in MM will be exluded from the upgrade.
+ * hosts are in maintenance mode. Hosts in MM will be excluded from the upgrade.
  * <p/>
  * This check will return {@link UpgradeCheckStatus#WARNING} for any hosts in
  * maintenance mode.

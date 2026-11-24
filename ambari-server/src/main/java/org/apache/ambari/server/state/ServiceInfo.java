@@ -294,7 +294,7 @@ public class ServiceInfo implements Validable {
   private volatile Map<String, QuickLinksConfigurationInfo> quickLinksConfigurationsMap;
 
   /**
-   * Map of of os-specific details that is exposed (and initialised from list)
+   * Map of os-specific details that is exposed (and initialised from list)
    * at getter.
    * Added at schema ver 2
    */

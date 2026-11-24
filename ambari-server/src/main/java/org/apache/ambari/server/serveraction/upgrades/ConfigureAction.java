@@ -72,7 +72,7 @@ import com.google.inject.Provider;
 /**
  * The {@link ConfigureAction} is used to alter a configuration property during
  * an upgrade. It will only produce a new configuration if an actual change is
- * occuring. For some configure tasks, the value is already at the desired
+ * occurring. For some configure tasks, the value is already at the desired
  * property or the conditions of the task are not met. In these cases, a new
  * configuration will not be created. This task can perform any of the following
  * actions in a single declaration:
@@ -617,7 +617,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
     // iterate over all properties for every cluster service; if the property
     // has the correct config type (ie oozie-site or hdfs-site) then add it to
-    // the list of original stack propertiess
+    // the list of original stack properties
     Set<String> stackPropertiesForType = new HashSet<>(50);
     for (String serviceName : cluster.getServices().keySet()) {
       Set<PropertyInfo> serviceProperties = m_ambariMetaInfo.get().getServiceProperties(
@@ -644,7 +644,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
       }
     }
 
-    // see if any keys exist in the old config but not the the original stack
+    // see if any keys exist in the old config but not the original stack
     // for this config type; that means they were added and should be preserved
     Map<String, String> base = config.getProperties();
     Set<String> baseKeys = base.keySet();

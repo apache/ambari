@@ -140,7 +140,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that properties which were explicitely removed in the current
+   * Tests that properties which were explicitly removed in the current
    * configurations by stack advisor are not re-introduced as "new" properties
    * accidentally.
    * <p/>
@@ -171,7 +171,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
    *
    * The final merged configurations should detect that {{foo-property-2}}
    * exists in both stacks but is not in the current configs and was therefore
-   * purposefully removed. It shoudl also detect that {{bar-property-2}} was
+   * purposefully removed. It should also detect that {{bar-property-2}} was
    * added in the new stack and should be added in.
    *
    * @throws Exception

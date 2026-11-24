@@ -69,7 +69,7 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
   /**
    * Constructor.
    * <p>
-   * Given supplied data, sets up the the {@link SpnegoAuthenticationProcessingFilter} to perform
+   * Given supplied data, sets up the {@link SpnegoAuthenticationProcessingFilter} to perform
    * authentication and audit logging if configured do to so.
    *
    * @param authenticationManager the Spring authentication manager

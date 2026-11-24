@@ -200,7 +200,7 @@ public class Reporting {
   }
 
   /**
-   * The {@link ReportTemplate} class is used to pair a label and threshhold
+   * The {@link ReportTemplate} class is used to pair a label and threshold
    * value.
    * <p/>
    * Equality checking for instances of this class should be executed on every
@@ -274,7 +274,7 @@ public class Reporting {
     NUMERIC,
 
     /**
-     * A percent value, expessed as a float.
+     * A percent value, expressed as a float.
      */
     PERCENT
   }

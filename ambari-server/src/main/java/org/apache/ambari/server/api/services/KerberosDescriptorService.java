@@ -74,7 +74,7 @@ public class KerberosDescriptorService extends BaseService {
    *
    * @param headers                http headers
    * @param ui                     uri info
-   * @param kerberosDescriptorName kerebros descriptor name
+   * @param kerberosDescriptorName kerberos descriptor name
    * @return information regarding the deleted kerberos descriptor
    */
   @DELETE @ApiIgnore // until documented

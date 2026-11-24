@@ -454,7 +454,7 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
   # Check for ambari configuration file.
   resolve_ambari_config()
 
-  # Add syslog hanlder based on ambari config file
+  # Add syslog handler based on ambari config file
   add_syslog_handler(logger)
 
   # Starting data cleanup daemon

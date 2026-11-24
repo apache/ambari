@@ -50,7 +50,7 @@ class RemovePreviousStacks(Script):
       self.remove_stack_version(structured_output, low_version)
 
   def remove_stack_version(self, structured_output, version):
-    # check simlinks not refer to version for remove
+    # check symlinks not refer to version for remove
     self.check_no_symlink_to_version(structured_output, version)
     packages_to_remove = self.get_packages_to_remove(version)
     for package in packages_to_remove:

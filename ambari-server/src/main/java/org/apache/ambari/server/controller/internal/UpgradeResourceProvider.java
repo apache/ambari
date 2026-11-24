@@ -651,11 +651,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
 
-    // set the assocaited to/from version (to/from is dictated by direction)
+    // set the associated to/from version (to/from is dictated by direction)
     RepositoryVersionEntity repositoryVersion = entity.getRepositoryVersion();
     setResourceProperty(resource, UPGRADE_ASSOCIATED_VERSION, repositoryVersion.getVersion(), requestedIds);
 
-    // now set the target verison for all services in the upgrade
+    // now set the target version for all services in the upgrade
     Map<String, RepositoryVersions> repositoryVersions = new HashMap<>();
     for( UpgradeHistoryEntity history : entity.getHistory() ){
       RepositoryVersions serviceVersions = repositoryVersions.get(history.getServiceName());
@@ -856,7 +856,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
           case REGENERATE_KEYTABS: {
             try {
-              // remmeber how many stages we had before adding keytab stuff
+              // remember how many stages we had before adding keytab stuff
               int stageCount = req.getStages().size();
 
               // build a map of request properties which say to

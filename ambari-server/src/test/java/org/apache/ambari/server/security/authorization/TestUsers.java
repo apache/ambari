@@ -441,7 +441,7 @@ public class TestUsers {
       // This is expected
     }
 
-    // get members from not unexisting group
+    // get members from non-existing group
     assertEquals(users.getGroupMembers("unexisting"), null);
 
     // remove member from group

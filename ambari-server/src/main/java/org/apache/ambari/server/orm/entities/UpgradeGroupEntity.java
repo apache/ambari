@@ -37,7 +37,7 @@ import jakarta.persistence.TableGenerator;
  * <p/>
  * Since {@link UpgradeGroupEntity} instances are rarely created, yet created in
  * bulk, we have an abnormally high {@code allocationSize}} for the
- * {@link TableGenerator}. This helps prevent locks caused by frequenty queries
+ * {@link TableGenerator}. This helps prevent locks caused by frequent queries
  * to the sequence ID table.
  */
 @Table(name = "upgrade_group")

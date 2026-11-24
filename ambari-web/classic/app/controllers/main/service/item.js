@@ -725,7 +725,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   restartLLAP: function () {
     var isRefreshQueueRequired, self = this;
     return App.showConfirmationPopup(function () {
-      // regresh queue request is sending only if YARN service has stale configs
+      // refresh queue request is sending only if YARN service has stale configs
       isRefreshQueueRequired = App.Service.find('YARN').get('isRestartRequired');
       if (isRefreshQueueRequired) {
         self.restartLLAPAndRefreshQueueRequest();
@@ -1980,7 +1980,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('serviceNamesToDelete'),
 
   /**
-   * Method ot save configs after service have been removed
+   * Method to save configs after service have been removed
    * @override
    */
   saveConfigs: function() {

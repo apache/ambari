@@ -123,7 +123,7 @@ def process_replacements(file_path, config_data, stack_version_changes):
     for _from, _to in stack_version_changes.items():
       file_data = file_data.replace(_from, _to)
       file_data = process_version_replace(file_data, _from, _to)
-  # preform common replacements
+  # perform common replacements
   if (
     "performCommonReplacements" in config_data and config_data.performCommonReplacements
   ):

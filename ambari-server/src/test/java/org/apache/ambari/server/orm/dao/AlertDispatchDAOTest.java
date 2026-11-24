@@ -456,7 +456,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * Tests finding groups by a definition ID that they are associatd with.
+   * Tests finding groups by a definition ID that they are associated with.
    *
    * @throws Exception
    */
@@ -487,7 +487,7 @@ public class AlertDispatchDAOTest {
   }
 
   /**
-   * Tests finding groups by a definition ID that they are associatd with in
+   * Tests finding groups by a definition ID that they are associated with in
    * order to get any targets associated with that group. This exercises the
    * bi-directional
    *

@@ -137,7 +137,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    * The default success factor that will be used when determining if a stage's
    * failure should cause other stages to abort. Consider a scenario with 1000
    * hosts, broken up into 10 stages. Each stage would have 100 hosts. If the
-   * success factor was 100%, then any failure in stage 1 woudl cause all 9
+   * success factor was 100%, then any failure in stage 1 would cause all 9
    * other stages to abort. If set to 90%, then 10 hosts would need to fail for
    * the other stages to abort. This is necessary to prevent the abortion of
    * stages based on 1 or 2 errant hosts failing in a large cluster's stack

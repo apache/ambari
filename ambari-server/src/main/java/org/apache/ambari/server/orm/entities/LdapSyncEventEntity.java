@@ -162,7 +162,7 @@ public class LdapSyncEventEntity {
   }
 
   /**
-   * Get the time the the sync event ended.
+   * Get the time the sync event ended.
    *
    * @return  the end time (millis)
    */

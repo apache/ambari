@@ -368,7 +368,7 @@ export const yarn_properties = [
   //   },
 
   // {
-  //   "category": "Node Manger",
+  //   "category": "Node Manager",
   //   "filename": "yarn-site.xml",
   //   "name": "yarn.nodemanager.resource.memory-mb",
   //   "serviceName": "YARN"
@@ -382,7 +382,7 @@ export const yarn_properties = [
   // },
 
   // {
-  //   "category": "Node Manger",
+  //   "category": "Node Manager",
   //   "filename": "yarn-site.xml",
   //   "name": "yarn.nodemanager.log.retain-second",
   //   "serviceName": "YARN"

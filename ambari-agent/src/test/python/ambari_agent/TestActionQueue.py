@@ -1615,7 +1615,7 @@ class TestActionQueue(TestCase):
     actionQueue.process_background_queue_safe_empty()
     # actionQueue.controller.statusCommandExecutor.process_results();
 
-    # assert that python execturor start
+    # assert that python executor start
     self.assertTrue(runCommand_mock.called)
     runningCommand = actionQueue.commandStatuses.current_state.get(
       execute_command["taskId"]

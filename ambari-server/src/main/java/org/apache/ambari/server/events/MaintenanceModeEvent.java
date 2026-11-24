@@ -30,7 +30,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
  * {@link MaintenanceState}, this event should handle explicit on or off state
  * changes. This event should not be used for implied state changes, such as
  * when a component goes into implied maintenance mode as a result of its host's
- * maintenance mode being explicitely invoked.
+ * maintenance mode being explicitly invoked.
  */
 public class MaintenanceModeEvent extends AmbariEvent {
 
@@ -50,7 +50,7 @@ public class MaintenanceModeEvent extends AmbariEvent {
   private final Host m_host;
 
   /**
-   * The component whose maintenace state changed, or {@code null}.
+   * The component whose maintenance state changed, or {@code null}.
    */
   private final ServiceComponentHost m_serviceComponentHost;
 

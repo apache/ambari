@@ -163,7 +163,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     // Get a valid ticket for the request.
     final Ticket ticket = new Ticket();
 
-    // in most cases, the buffered completion service will not be utlized for
+    // in most cases, the buffered completion service will not be utilized for
     // its advantages since the worker queue is unbounded. However, if is
     // configured with a boundary, then the buffered service ensures that no
     // requests are discarded.

@@ -193,7 +193,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
   ],
 
   /**
-   *list of static actions of widget accessible to Admin/Operator privelege
+   *list of static actions of widget accessible to Admin/Operator privilege
    * @type {Array}
    */
 

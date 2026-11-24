@@ -87,7 +87,7 @@ For each new component, the following steps will occur before the component is i
 ### Adding Hosts
 
 When adding a new host, the Kerberos client must be installed on it. This does not happen automatically;
-however the _Add Host Wizard_ in the Ambari UI will will perform this step if Kerberos was enabled for
+however the _Add Host Wizard_ in the Ambari UI will perform this step if Kerberos was enabled for
 the Ambari cluster. Once the host is added, generally one or more components are installed on
 it - see [Adding Components](#adding-components).
 

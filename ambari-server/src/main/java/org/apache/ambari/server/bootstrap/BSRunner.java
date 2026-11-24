@@ -141,7 +141,7 @@ class BSRunner extends Thread {
 
   /**
    * Waits until the process has terminated or waiting time elapses.
-   * @param timeout time to wait in miliseconds
+   * @param timeout time to wait in milliseconds
    * @return true if process has exited, false otherwise
    */
   private boolean waitForProcessTermination(Process process, long timeout) throws InterruptedException {

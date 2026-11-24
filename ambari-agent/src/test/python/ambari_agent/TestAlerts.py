@@ -447,7 +447,7 @@ class TestAlerts(TestCase):
 
     self.assertEqual("UNKNOWN", collector.alerts()[0]["state"])
 
-    # set properties that make no sense wihtout the main URI properties
+    # set properties that make no sense without the main URI properties
     configuration = {"hdfs-site": {"dfs.http.policy": "HTTP_ONLY"}}
 
     collector = AlertCollector()

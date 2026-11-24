@@ -84,7 +84,7 @@ public class Notification {
   public List<String> CallbackIds;
 
   /**
-   * Gets the type of notificaton.
+   * Gets the type of notification.
    *
    * @return the type (never {@code null}).
    */

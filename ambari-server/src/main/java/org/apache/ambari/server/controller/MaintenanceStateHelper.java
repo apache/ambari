@@ -429,7 +429,7 @@ public class MaintenanceStateHelper {
   }
 
   /**
-   * The {@link HostPredicate} interaface is used as a way to pass a custom
+   * The {@link HostPredicate} interface is used as a way to pass a custom
    * implementation into one of the many
    * {@link MaintenanceStateHelper#isOperationAllowed(org.apache.ambari.server.controller.spi.Resource.Type, Service)}
    * methods.

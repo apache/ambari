@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides utility methods to support operations retry
- * TODO injection as Guice singleon, static for now to avoid major modifications
+ * TODO injection as Guice singleton, static for now to avoid major modifications
  */
 public class RetryHelper {
   private static final Logger LOG = LoggerFactory.getLogger(RetryHelper.class);

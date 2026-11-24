@@ -59,7 +59,7 @@ public class LdapConnectionTemplateFactory {
   }
 
   /**
-   * Creates a new instance based on the provided configuration. Use this factory method whle operating with ambari configuration not yet persisted.
+   * Creates a new instance based on the provided configuration. Use this factory method while operating with ambari configuration not yet persisted.
    *
    * @param ambariLdapConfiguration ambari ldap configuration instance
    * @return an instance of LdapConnectionTemplate

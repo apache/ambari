@@ -1994,7 +1994,7 @@ public class TestActionScheduler {
       stage.getOrderedHostRoleCommands().get(index).setStatus(statusesAtIterThree[index]);
     }
 
-    // Fails becuse HostRoleCommand doesn't have a hostName
+    // Fails because HostRoleCommand doesn't have a hostName
     scheduler.doWork();
 
     // Request is aborted because HBASE_CLIENT's success factor (1) is not met
@@ -2466,7 +2466,7 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.ABORTED,
             stages.get(0).getHostRoleStatus(hostname1, "HBASE_REGIONSERVER"));
 
-    // If regression occured, scheduler thread would fail with an exception
+    // If regression occurred, scheduler thread would fail with an exception
     // instead of aborting request
     verify(db, times(2)).abortOperation(anyLong());
 

@@ -646,7 +646,7 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret["exitcode"], 0)
     self.assertTrue(run_file_mock.called)
-    # Hoooks are not supported for custom actions,
+    # Hooks are not supported for custom actions,
     # that's why run_file() should be called only once
     self.assertEqual(run_file_mock.call_count, 1)
 

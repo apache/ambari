@@ -789,7 +789,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
   /**
    * Same as <code>createComponent</code> but with kdc session check and status changes
-   * when KDC auth dialog dissmised.
+   * when KDC auth dialog dismissed.
    *
    * @see createComponent
    */

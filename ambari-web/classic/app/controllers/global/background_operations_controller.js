@@ -286,7 +286,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   },
 
   /**
-   * returns true if it's upgrade equest
+   * returns true if it's upgrade request
    * use this flag to exclude upgrade requests from bgo
    * @param {object} request
    * @returns {boolean}

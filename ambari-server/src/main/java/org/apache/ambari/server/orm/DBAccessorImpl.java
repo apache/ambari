@@ -1058,7 +1058,7 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     // even if the FK didn't exist, the index constraint might, so check it
-    // indepedently of the FK (but only on MySQL)
+    // independently of the FK (but only on MySQL)
     Configuration.DatabaseType databaseType = configuration.getDatabaseType();
     if (databaseType == DatabaseType.MYSQL && tableHasIndex(tableName, false, constraintName)) {
         String query = dbmsHelper.getDropIndexStatement(constraintName, tableName);
@@ -1094,7 +1094,7 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure, boolean cascade) throws SQLException {
     /*
-     * Note, this is un-safe implementation as constraint name checking will work only for PostgresSQL,
+     * Note, this is un-safe implementation as constraint name checking will work only for PostgreSQL,
      * MySQL and Oracle doesn't use constraint name for drop primary key
      * Consider to use implementation with column name checking for existed constraint.
      */

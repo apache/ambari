@@ -214,7 +214,7 @@ App.StackConfigProperty = DS.Model.extend({
   }.property('valueAttributes.type'),
 
   /**
-   * defines if the property can be overriden in the host config group
+   * defines if the property can be overridden in the host config group
    * @type {boolean}
    */
   isOverridable: function() {

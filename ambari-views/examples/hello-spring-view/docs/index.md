@@ -145,7 +145,7 @@ After deploying a view you should see it as a view resource in the Ambari REST A
       }
 
 
-We can access access the view at ...
+We can access the view at ...
       
     http://c6401.ambari.apache.org:8080/views/HELLO_SPRING/1.0.0/INSTANCE/
 

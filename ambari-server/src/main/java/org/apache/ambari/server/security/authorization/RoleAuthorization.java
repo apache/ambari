@@ -151,7 +151,7 @@ public enum RoleAuthorization {
   }
 
   /**
-   * Get's the ID value for this RoleAuthorization
+   * Gets the ID value for this RoleAuthorization
    * <p/>
    * This value represents the <code>roleauthorization.authorization_id</code> value from the Ambari database
    *

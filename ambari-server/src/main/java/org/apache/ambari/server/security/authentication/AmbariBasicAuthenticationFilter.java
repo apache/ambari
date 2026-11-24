@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
  * AmbariBasicAuthenticationFilter extends a {@link BasicAuthenticationFilter} to allow for auditing
  * of authentication attempts
  * <p>
- * This authentication filter is expected to be used withing an {@link AmbariDelegatingAuthenticationFilter}.
+ * This authentication filter is expected to be used within an {@link AmbariDelegatingAuthenticationFilter}.
  *
  * @see AmbariDelegatingAuthenticationFilter
  */

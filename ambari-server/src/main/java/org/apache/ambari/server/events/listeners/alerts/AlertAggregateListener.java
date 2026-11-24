@@ -153,7 +153,7 @@ public class AlertAggregateListener {
    * Calculates the aggregate alert state if there is an aggregate alert for the
    * specified alert.
    * <p/>
-   * This method should not be decoratd with {@link AllowConcurrentEvents} since
+   * This method should not be decorated with {@link AllowConcurrentEvents} since
    * it would need extra locking around {@link #m_alertCache}.
    *
    * @param clusterId

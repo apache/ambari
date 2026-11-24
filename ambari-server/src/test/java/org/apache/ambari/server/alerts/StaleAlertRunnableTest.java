@@ -266,7 +266,7 @@ public class StaleAlertRunnableTest {
   }
 
   /**
-   * Tests that the event is triggerd with a status of OK.
+   * Tests that the event is triggered with a status of OK.
    */
   @Test
   public void testAllAlertsAreCurrent() {
@@ -331,7 +331,7 @@ public class StaleAlertRunnableTest {
     expect(current1.getDefinitionId()).andReturn(1L).atLeastOnce();
     expect(history1.getAlertDefinition()).andReturn(definition).atLeastOnce();
 
-    // a really old timestampt to trigger the alert
+    // a really old timestamp to trigger the alert
     expect(current1.getMaintenanceState()).andReturn(MaintenanceState.OFF).atLeastOnce();
     expect(current1.getLatestTimestamp()).andReturn(1L).atLeastOnce();
 
@@ -640,7 +640,7 @@ public class StaleAlertRunnableTest {
     definition.setEnabled(true);
     definition.setScheduleInterval(1);
 
-    // create current alerts where 1 is stale but in maintence mode
+    // create current alerts where 1 is stale but in maintenance mode
     AlertCurrentEntity current1 = createNiceMock(AlertCurrentEntity.class);
     AlertHistoryEntity history1 = createNiceMock(AlertHistoryEntity.class);
     AlertCurrentEntity current2 = createNiceMock(AlertCurrentEntity.class);

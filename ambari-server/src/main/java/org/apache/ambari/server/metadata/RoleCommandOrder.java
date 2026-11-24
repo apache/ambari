@@ -56,7 +56,7 @@ public class RoleCommandOrder implements Cloneable {
 			LoggerFactory.getLogger(RoleCommandOrder.class);
 
   /**
-   * The section names used to add overides in addition to the
+   * The section names used to add overrides in addition to the
    * {@link #GENERAL_DEPS_KEY} section.
    */
   private LinkedHashSet<String> sectionKeys;
@@ -232,7 +232,7 @@ public class RoleCommandOrder implements Cloneable {
   /**
    * Returns transitive dependencies as a services list
    * @param service to check if it depends on another services
-   * @return tramsitive services
+   * @return transitive services
    */
   public Set<Service> getTransitiveServices(Service service, RoleCommand cmd)
     throws AmbariException {

@@ -145,7 +145,7 @@ public abstract class AbstractCredentialStore implements CredentialStore {
    * This implementation is thread-safe, allowing one thread at a time to access the credential store.
    *
    * @return a Set of Strings representing alias names for the credentials stored in the CredentialStore
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   @Override
   public Set<String> listCredentials() throws AmbariException {
@@ -182,7 +182,7 @@ public abstract class AbstractCredentialStore implements CredentialStore {
    *
    * @param alias a string declaring the alias (or name) of the credential
    * @return true if the alias exists; otherwise false
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   @Override
   public boolean containsCredential(String alias) throws AmbariException {

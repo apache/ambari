@@ -70,7 +70,7 @@ class TestUtils(TestCase):
     # File not found in the path
     isfile_mock.return_value = False
     self.assertEqual("myfile", utils.locate_file("myfile"))
-    # Testing default vaule
+    # Testing default value
     isfile_mock.return_value = False
     self.assertEqual("/tmp/myfile", utils.locate_file("myfile", "/tmp"))
 

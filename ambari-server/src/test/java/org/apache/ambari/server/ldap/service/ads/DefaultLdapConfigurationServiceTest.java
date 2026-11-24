@@ -66,7 +66,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
     // GIVEN
     AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(Maps.newHashMap());
 
-    // the cllback returns TRUE
+    // the callback returns TRUE
     EasyMock.expect(ldapConnectionTemplateMock.execute(EasyMock.anyObject(ConnectionCallback.class))).andReturn(Boolean.TRUE);
     EasyMock.expect(ldapConnectionTemplateFactory.create(ambariLdapConfiguration)).andReturn(ldapConnectionTemplateMock);
 

@@ -125,7 +125,7 @@ public class HostGroupEntity {
   }
 
   /**
-   * Set thge collection of associated component entities.
+   * Set the collection of associated component entities.
    *
    * @param components  collection of components
    */
