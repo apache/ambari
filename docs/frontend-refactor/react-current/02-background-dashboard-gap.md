@@ -41,6 +41,12 @@ The comparison used the Ember feature baseline, the actual classic source, and a
 
 The static React gaps in request snapshots, request/host/task details, logs, abort handling, preferences, realtime transport, Config History, and history-to-Service-Configs navigation are addressed. The module cannot be marked covered until it is exercised against a real Ambari Server. `BG-005` and `BG-006` remain partial because their complete acceptance boundary is distributed across Installer, Services, Upgrade, HSI, and other modules that have not yet been reconciled.
 
+The request overview uses the active UI language for its breadcrumb, running
+count, column headings, and background-dialog preference. Focused component
+coverage checks English and Simplified Chinese and switches languages while
+the dialog is open. Other request-detail and filter text remains outside this
+change; full localization parity still needs runtime validation.
+
 ## Feature Status
 
 | ID | Status | React implementation and automated evidence | Remaining boundary |

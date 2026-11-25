@@ -632,6 +632,8 @@
   "common.notAvailable": "不可用",
   "common.na": "不适用",
   "common.operations": "操作",
+  "backgroundOperations.title": "后台操作",
+  "backgroundOperations.running_other": "{{count}} 个后台操作正在运行",
   "common.backgroundOperations": "后台操作",
   "common.startTime": "开始时间",
   "common.duration": "持续时间",
