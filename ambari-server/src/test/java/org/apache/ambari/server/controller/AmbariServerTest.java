@@ -28,6 +28,7 @@ import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -118,29 +119,31 @@ public class AmbariServerTest {
     SessionHandlerConfigurer sessionHandlerConfigurer = new SessionHandlerConfigurer();
 
     Configuration configuration = createNiceMock(Configuration.class);
-    SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
-    SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
+    SessionHandler sessionHandler = new SessionHandler();
+    SessionCookieConfig sessionCookieConfig = sessionHandler.getSessionCookieConfig();
 
     sessionHandlerConfigurer.configuration = configuration;
 
-    expect(sessionHandler.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
-
     expect(configuration.getApiSSLAuthentication()).andReturn(false);
-    sessionCookieConfig.setHttpOnly(true);
-
     expect(configuration.getApiSSLAuthentication()).andReturn(true);
-    sessionCookieConfig.setHttpOnly(true);
-    sessionCookieConfig.setSecure(true);
+    expect(configuration.getHttpSessionInactiveTimeout()).andReturn(1200).times(2);
 
-    replay(configuration, sessionHandler, sessionCookieConfig);
+    replay(configuration);
 
     // getApiSSLAuthentication == false
     sessionHandlerConfigurer.configureSessionHandler(sessionHandler);
+    assertEquals("AMBARISESSIONID", sessionCookieConfig.getName());
+    assertEquals("/", sessionCookieConfig.getPath());
+    assertTrue(sessionCookieConfig.isHttpOnly());
+    assertFalse(sessionCookieConfig.isSecure());
+    assertEquals(1200, sessionHandler.getMaxInactiveInterval());
 
     // getApiSSLAuthentication == true
     sessionHandlerConfigurer.configureSessionHandler(sessionHandler);
+    assertTrue(sessionCookieConfig.isHttpOnly());
+    assertTrue(sessionCookieConfig.isSecure());
 
-    verify(configuration, sessionHandler, sessionCookieConfig);
+    verify(configuration);
   }
 
   @Test
