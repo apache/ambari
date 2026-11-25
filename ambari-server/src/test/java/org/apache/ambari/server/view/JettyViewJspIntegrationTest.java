@@ -20,9 +20,11 @@ package org.apache.ambari.server.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -30,6 +32,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariViewErrorHandlerProxy;
@@ -56,6 +61,50 @@ public class JettyViewJspIntegrationTest {
     if (server != null) {
       server.stop();
     }
+  }
+
+  @Test
+  public void testViewDiscoversJava17AnnotatedServlet() throws Exception {
+    Path source = webRoot.resolve("Java17Servlet.java");
+    Files.writeString(source, """
+        package view;
+        import java.io.IOException;
+        import jakarta.servlet.annotation.WebServlet;
+        import jakarta.servlet.http.HttpServlet;
+        import jakarta.servlet.http.HttpServletRequest;
+        import jakarta.servlet.http.HttpServletResponse;
+        @WebServlet("/java17")
+        public class Java17Servlet extends HttpServlet {
+          protected void doGet(HttpServletRequest request, HttpServletResponse response)
+              throws IOException {
+            response.getWriter().write("java17-view");
+          }
+        }
+        """, StandardCharsets.UTF_8);
+    Path classes = Files.createDirectories(webRoot.resolve("WEB-INF/classes"));
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    assertNotNull(compiler);
+    ByteArrayOutputStream diagnostics = new ByteArrayOutputStream();
+    int result = compiler.run(null, diagnostics, diagnostics, "--release", "17", "-classpath",
+        System.getProperty("surefire.test.class.path", System.getProperty("java.class.path")),
+        "-d", classes.toString(), source.toString());
+    assertEquals(0, result, diagnostics.toString(StandardCharsets.UTF_8));
+
+    WebAppContext context = new WebAppContext();
+    context.setContextPath("/");
+    context.setBaseResourceAsString(webRoot.toString());
+    context.setConfigurationDiscovered(true);
+    context.setThrowUnavailableOnStartupException(true);
+    server = new Server(0);
+    server.setHandler(context);
+    server.start();
+
+    int port = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+    HttpResponse<String> response = HttpClient.newHttpClient().send(
+        HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/java17")).build(),
+        HttpResponse.BodyHandlers.ofString());
+    assertEquals(200, response.statusCode());
+    assertEquals("java17-view", response.body());
   }
 
   @Test

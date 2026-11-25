@@ -36,16 +36,17 @@ public class SessionHandlerConfigurer {
    * @param sessionHandler session handler
    */
   protected void configureSessionHandler(SessionHandler sessionHandler) {
-    sessionHandler.getSessionCookieConfig().setPath("/");
+    // Views can be initialized during a request to an already started servlet context.
+    sessionHandler.setSessionPath("/");
 
     // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
     // other services (like HDFS) that run on the same context but a different
     // port
     sessionHandler.setSessionCookie("AMBARISESSIONID");
 
-    sessionHandler.getSessionCookieConfig().setHttpOnly(true);
+    sessionHandler.setHttpOnly(true);
     if (configuration.getApiSSLAuthentication()) {
-      sessionHandler.getSessionCookieConfig().setSecure(true);
+      sessionHandler.setSecureCookies(true);
     }
 
     configureMaxInactiveInterval(sessionHandler);
