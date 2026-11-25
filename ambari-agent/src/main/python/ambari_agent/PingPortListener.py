@@ -78,7 +78,7 @@ class PingPortListener(threading.Thread):
     while self.running:
       try:
         conn, addr = self.socket.accept()
-        conn.send("OK")
+        conn.send(b"OK")
         conn.close()
       except Exception as ex:
         logger.error("Failed in Ping port listener because of:" + str(ex))
