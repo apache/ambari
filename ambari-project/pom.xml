@@ -33,6 +33,7 @@
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>2.0.9</powermock.version>
     <jetty.version>12.0.39</jetty.version>
+    <asm.version>9.10.1</asm.version>
     <kerby.version>2.1.2</kerby.version>
     <checkstyle.version>10.26.1</checkstyle.version>
     <swagger.version>1.6.8</swagger.version>
@@ -114,6 +115,13 @@
         <groupId>org.apache.kerby</groupId>
         <artifactId>kerby-bom</artifactId>
         <version>${kerby.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-bom</artifactId>
+        <version>${asm.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
