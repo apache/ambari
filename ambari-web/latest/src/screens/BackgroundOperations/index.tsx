@@ -17,6 +17,7 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ClusterApi from "../../api/clusterApi";
 import {  filter, get } from "lodash";
 import { parseRequestContext, commandDetail } from "../../Utils/Utility";
@@ -79,6 +80,7 @@ function BackgroundOperations({
   clusterName,
   isExplicitClick = false,
 }: PropTypes) {
+  const { t } = useTranslation();
   const initialLevel = requestId && rootLevel === ViewLevel.REQUESTS
     ? ViewLevel.HOSTS
     : rootLevel;
@@ -188,7 +190,7 @@ function BackgroundOperations({
     //@ts-expect-error
     const breadcrumbsConfig = {
       [ViewLevel.REQUESTS]: {
-        breadcrumb: { name: "Background Operation", level: ViewLevel.REQUESTS },
+        breadcrumb: { name: t("backgroundOperations.title"), level: ViewLevel.REQUESTS },
         conditions: [{ active: true }],
       },
       [ViewLevel.HOSTS]: {
@@ -201,7 +203,7 @@ function BackgroundOperations({
           { active: true, if: rootLevel === ViewLevel.HOSTS },
           {
             breadcrumb: {
-              name: "Background Operation",
+              name: t("backgroundOperations.title"),
               level: ViewLevel.REQUESTS,
             },
           },
@@ -222,7 +224,7 @@ function BackgroundOperations({
           },
           {
             breadcrumb: {
-              name: "Background Operation",
+              name: t("backgroundOperations.title"),
               level: ViewLevel.REQUESTS,
             },
           },
@@ -247,7 +249,7 @@ function BackgroundOperations({
           { breadcrumb: { name: selectedHost, level: ViewLevel.TASKS_LIST } },
           {
             breadcrumb: {
-              name: "Background Operation",
+              name: t("backgroundOperations.title"),
               level: ViewLevel.REQUESTS,
             },
           },
@@ -258,7 +260,7 @@ function BackgroundOperations({
     switch (selectedLevel) {
       case ViewLevel.REQUESTS:
         inferredBreadcrumbs.push({
-          name: "Background Operation",
+          name: t("backgroundOperations.title"),
           level: ViewLevel.REQUESTS,
           active: true,
         });
@@ -274,7 +276,7 @@ function BackgroundOperations({
           });
         } else {
           inferredBreadcrumbs.push({
-            name: "Background Operation",
+            name: t("backgroundOperations.title"),
             level: ViewLevel.REQUESTS,
           });
           inferredBreadcrumbs.push({
@@ -307,7 +309,7 @@ function BackgroundOperations({
           });
         } else {
           inferredBreadcrumbs.push({
-            name: "Background Operation",
+            name: t("backgroundOperations.title"),
             level: ViewLevel.REQUESTS,
           });
           inferredBreadcrumbs.push({
@@ -356,7 +358,7 @@ function BackgroundOperations({
           });
         } else {
           inferredBreadcrumbs.push({
-            name: "Background Operation",
+            name: t("backgroundOperations.title"),
             level: ViewLevel.REQUESTS,
           });
           inferredBreadcrumbs.push({
@@ -436,7 +438,7 @@ function BackgroundOperations({
 
   const requestDetailsColumns = [
     {
-      header: "Operations",
+      header: t("common.operations"),
       id: "name",
       width: "30%",
       cell: (info: any) => {
@@ -463,7 +465,7 @@ function BackgroundOperations({
       },
     },
     {
-      header: "Status",
+      header: t("common.status"),
       id: "status",
       width: "20%",
       cell: (info: any) => {
@@ -490,7 +492,7 @@ function BackgroundOperations({
       },
     },
     {
-      header: "User",
+      header: t("common.user"),
       accessorKey: "Requests.user_name",
       id: "username",
       cell: (info: any) => {
@@ -509,7 +511,7 @@ function BackgroundOperations({
       },
     },
     {
-      header: "Start Time",
+      header: t("common.startTime"),
       id: "Start Time",
       cell: (info: any) => {
         const {
@@ -529,7 +531,7 @@ function BackgroundOperations({
       },
     },
     {
-      header: "Duration",
+      header: t("common.duration"),
       id: "duration",
       cell: (info: any) => {
         const {
@@ -750,7 +752,7 @@ function BackgroundOperations({
           direction="horizontal"
           className="justify-content-between mt-3 w-100"
         >
-          <h2>{runningOperationsCount} Background Operations Running</h2>
+          <h2>{t("backgroundOperations.running", { count: runningOperationsCount })}</h2>
           <Filters
             items={filteredClusterRequests}
             allItems={backgroundOperations}
@@ -813,7 +815,7 @@ function BackgroundOperations({
             checked={!userBgPreferences}
             label={
               <div className="mt-1">
-                Do not show this dialog again when starting a background operation
+                {t("app.settings.notShowBgOperations")}
               </div>
             }
           />

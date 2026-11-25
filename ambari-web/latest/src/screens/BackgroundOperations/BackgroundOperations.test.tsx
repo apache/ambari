@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
+import i18n from "../../i18n";
 
 const mocks = vi.hoisted(() => ({
   fetchBackgroundOperationsSnapshot: vi.fn(),
@@ -50,11 +51,13 @@ vi.mock("react-hot-toast", () => ({
 type TestRow = Record<string, unknown>;
 type TestColumn = {
   id?: string;
+  header?: string;
   cell?: (info: { row: { original: TestRow } }) => React.ReactNode;
 };
 vi.mock("../../components/Table", () => ({
   default: ({ columns, data }: { columns: TestColumn[]; data: TestRow[] }) => (
     <div>
+      {columns.map((column, index) => <span key={column.id || index}>{column.header}</span>)}
       {data.map((item, rowIndex) => (
         <div key={rowIndex}>
           {columns.map((column, columnIndex) => (
@@ -174,7 +177,25 @@ describe("Background Operations permissions and abort recovery", () => {
     mocks.canViewClusterTasks.mockReturnValue(true);
   });
 
-  afterEach(() => cleanup());
+  afterEach(async () => {
+    cleanup();
+    await i18n.changeLanguage("en");
+  });
+
+  it("localizes the request overview and updates when the language changes", async () => {
+    mocks.hasAuthorization.mockReturnValue(true);
+    await i18n.changeLanguage("zh");
+    renderOperations();
+    expect(await screen.findByText("后台操作")).toBeTruthy();
+    expect(screen.getByText("1 个后台操作正在运行")).toBeTruthy();
+    for (const label of ["操作", "状态", "用户", "开始时间", "持续时间", "开始后台操作时不再显示此对话框"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    await act(async () => { await i18n.changeLanguage("en"); });
+    expect(screen.getByText("Background Operation")).toBeTruthy();
+    expect(screen.getByText("1 Background Operation Running")).toBeTruthy();
+    expect(screen.getByText("Operations")).toBeTruthy();
+  });
 
   it("does not expose Abort without SERVICE.START_STOP", async () => {
     mocks.hasAuthorization.mockReturnValue(false);
