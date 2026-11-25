@@ -68,6 +68,15 @@ function phaseLabel(phase: InstallationPhase): string {
   }
 }
 
+function getProgressBarColor(status: string): string {
+  switch (status) {
+    case "failed": return "danger";
+    case "warning": return "warning";
+    case "success": return "success";
+    default: return "info";
+  }
+}
+
 const taskData = (task: any) => task?.Tasks || task || {};
 
 function LegacyStep9({ wizardName = "clusterCreation" }: Step9Props) {
@@ -596,7 +605,17 @@ function LegacyStep9({ wizardName = "clusterCreation" }: Step9Props) {
             <tr key={host.name}>
               <td>{host.name}</td>
               <td>{host.message}</td>
-              <td>{host.progress}%</td>
+              <td>
+                <div className="d-flex align-items-center gap-2">
+                  <ProgressBar
+                    className="flex-grow-1"
+                    striped
+                    now={host.progress}
+                    variant={getProgressBarColor(host.status)}
+                  />
+                  <span className="text-nowrap">{host.progress}%</span>
+                </div>
+              </td>
               <td>
                 <div>{(host.logTasks || []).length} task(s)</div>
                 {host.lastRequestId != null ? (
