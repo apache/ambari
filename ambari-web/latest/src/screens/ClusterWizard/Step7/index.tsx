@@ -109,6 +109,7 @@ import {
 } from "../managedDependencyAdvisor";
 import type { ManagedDependencySelections } from "../managedDependencySelection";
 import { responseErrorMessage } from "../../../Utils/httpError";
+import { masterHostsByComponent } from "../../CommonConfigs/testConnectionUtils";
 import type {
   EnhancedConfigRecommendationState,
 } from "../../../hooks/useEnhancedConfigs";
@@ -475,6 +476,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           .map((host: any) => host.name);
 
   const mastersData: any = getStepData("MASTERS", "mastersData");
+  const componentHosts = masterHostsByComponent(mastersData);
   const slavesData: any = getStepData(
     "SLAVES_AND_CLIENTS",
     "serviceComponents"
@@ -865,23 +867,27 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   }
 
   useEffect(() => {
-    if (selectedTab === "credentials") return;
-    if (selectedTab === "databases") {
+    // Add Service renders no category tabs, so selectedTab can stay on a hidden
+    // default such as "credentials". Classic Add Service binds Next to
+    // isSubmitDisabled, the All Configurations rule; use it regardless of tab.
+    const gateTab = wizardName === "addService" ? "allConfigurations" : selectedTab;
+    if (gateTab === "credentials") return;
+    if (gateTab === "databases") {
       setIsNextEnabled(
         getCategoryClientErrors({
           configProperties,
-          selectedTab,
+          selectedTab: gateTab,
           serviceNames: conditionServices,
           themes,
         }).length === 0 && !recommendationBlocked,
       );
       return;
     }
-    if (selectedTab === "allConfigurations") {
+    if (gateTab === "allConfigurations") {
       setIsNextEnabled(
         getCategoryClientErrors({
           configProperties,
-          selectedTab,
+          selectedTab: gateTab,
           serviceNames: conditionServices,
           themes,
         }).length === 0 &&
@@ -891,7 +897,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       return;
     }
     setIsNextEnabled(!recommendationBlocked);
-  }, [configProperties, selectedTab, themes, validationErrors, recommendationBlocked]);
+  }, [configProperties, selectedTab, themes, validationErrors, recommendationBlocked, wizardName]);
 
   useEffect(() => {
     if (wizardName === "addService" && recommendationBlocked) {
@@ -1172,6 +1178,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          clusterInstalledServices={installedServices}
+          componentHosts={componentHosts}
           runWithAdvisorRequest={runWithAdvisorRequest}
           advisorScopeKey={advisorScopeKey}
           checkpointConfigProperties={checkpointConfiguration}
@@ -1205,6 +1213,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          clusterInstalledServices={installedServices}
+          componentHosts={componentHosts}
           runWithAdvisorRequest={runWithAdvisorRequest}
           advisorScopeKey={advisorScopeKey}
           checkpointConfigProperties={checkpointConfiguration}
@@ -1250,6 +1260,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          clusterInstalledServices={installedServices}
+          componentHosts={componentHosts}
           runWithAdvisorRequest={runWithAdvisorRequest}
           advisorScopeKey={advisorScopeKey}
           checkpointConfigProperties={checkpointConfiguration}
@@ -2958,6 +2970,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           }))
         }
         conditionServices={conditionServices}
+        clusterInstalledServices={installedServices}
+        componentHosts={componentHosts}
         runWithAdvisorRequest={runWithAdvisorRequest}
         advisorScopeKey={advisorScopeKey}
         checkpointConfigProperties={checkpointConfiguration}
