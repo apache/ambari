@@ -1,0 +1,57 @@
+# ── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+.env
+
+# ── Node / Frontend ──────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# ── Frontend build artifacts ─────────────────────────────────────────────────
+ambari-kavach-frontend/dist/
+
+# ── IDE / Editor ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Logs (may contain sensitive data — user emails, audit events) ─────────────
+kavach/logs/
+logs/
+*.log
+
+# ── Local configuration (copy *.ini.example → *.ini and fill in your values) ──
+**/*.ini
+!**/*.ini.example
+**/.env.local
+**/.env.*.local
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+.claude/
